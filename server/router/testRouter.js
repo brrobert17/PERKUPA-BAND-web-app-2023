@@ -1,22 +1,55 @@
-import {Router} from "express";
-import { collection, getDocs } from "firebase/firestore";
-import {db, storage, storageImagesRef} from "../config/firebase.js";
-import { ref, getDownloadURL, uploadBytes } from "firebase/storage";
+import {response, Router} from "express";
+import {storage, storageImagesRef} from "../config/firebase.js";
+import {ref, getDownloadURL, uploadBytes} from "firebase/storage";
 import multer from 'multer';
-
+import {readDocs, readDocById, createDoc, deleteDocById, updateDocById} from "../config/firestoreDatabaseService.js";
+import {giveCurrentDateTime} from "../utils/utils.js";
+import {deleteImage, uploadImage} from "../config/firebaseStorageService.js";
 
 const router = Router();
 const upload = multer().single('image');
 
-router.get("/test", async (req, res) => {
-    const querySnapshot = await getDocs(collection(db, "users"));
-    querySnapshot.forEach((doc) => {
-        //console.log(`${doc.id} => ${doc.data()}`);
+router.get("/test", (req, res) => {
+    res.send({data: giveCurrentDateTime()});
+})
+router.get("/test/docs", async (req, res) => {
+    const docs = await readDocs("users").catch((error) => {
+        console.log(error);
+        res.status(418).send(error);
     });
-    res.send({data: "test"});
+    res.send(docs);
+});
+router.get("/test/doc/:id", async (req, res) => {
+    const doc = await readDocById("users", req.params.id).catch((error) => {
+        console.log(error);
+        res.status(418).send(error);
+    });
+    res.send(doc);
+});
+router.post("/test/doc", async (req, res) => {
+    const doc = await createDoc("users", req.body).catch((error) => {
+        console.log(error);
+        res.status(418).send(error);
+    });
+    console.log(doc);
+    res.send(doc);
+});
+router.delete("/test/doc/:id", async (req, res) => {
+    const doc = await deleteDocById("users", req.params.id).catch((error) => {
+        console.log(error);
+        res.status(418).send(error);
+    });
+    res.send(doc);
 });
 
-router.get("/test/image", async (req, res)=> {
+router.patch("/test/doc/:id", async (req, res) => {
+    const doc = await updateDocById("users", req.params.id, req.body).catch((error) => {
+        console.log(error);
+        res.status(418).send(error);
+    });
+    res.send(doc);
+});
+router.get("/test/image", async (req, res) => {
 
     const imageRef = ref(storageImagesRef, '/perkupa1c.png');
     let url;
@@ -28,31 +61,18 @@ router.get("/test/image", async (req, res)=> {
 })
 
 router.post("/test/image", upload, async (req, res) => {
-    try {
-        const dateTime = giveCurrentDateTime();
-
-        const storageRef = ref(storage, `images/${dateTime}`);
-
-        const snapshot = await uploadBytes(storageRef, Buffer.from(req.body.file, 'base64'), {
-            contentType: 'image/png'
-        });
-
-        //console.log(req.body.file);
-        console.log('File successfully uploaded.');
-        return res.send({
-            message: 'file uploaded to firebase storage'
-        })
-    } catch (error) {
+    const result = await uploadImage(req.body.file).catch((error) => {
         console.log(error);
-        return res.status(400).send(error.message)
-    }
+        res.status(418).send(error);
+    });
+    res.send(result);
 });
 
-const giveCurrentDateTime = () => {
-    const today = new Date();
-    const date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
-    const time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-    const dateTime = date + ' ' + time;
-    return dateTime;
-}
+router.delete("/test/image/:filename", async (req, res) => {
+    await deleteImage(req.params.filename).catch((error) => {
+        console.log(error);
+        res.status(418).send(error);
+    });
+    res.send({message: `${req.params.filename} deleted`});
+});
 export default router;

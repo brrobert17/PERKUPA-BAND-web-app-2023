@@ -1,7 +1,7 @@
 <script>
     import {onMount} from "svelte";
     import ImageInput from "./assets/components/imageInput/ImageInput.svelte";
-    import {api} from "./config/axios.js";
+    import {api} from "./api/axios.js";
 
     let test = "";
 

@@ -1,5 +1,5 @@
 <script>
-    import {api} from "../../../config/axios.js";
+    import {api} from "../../../api/axios.js";
 
     let avatar, fileInput, base64Image;
 
