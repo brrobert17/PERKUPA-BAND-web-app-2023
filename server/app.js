@@ -1,12 +1,14 @@
 import express from 'express';
 import cors from 'cors';
 import session from 'express-session';
-
-
 import * as dotenv from "dotenv";
+import testRouter from "./router/testRouter.js";
+import * as bodyParser from "express";
+
 dotenv.config();
 const app = express();
 app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(session({
     secret: 'keyboard cat',
@@ -19,9 +21,6 @@ app.use(cors({
     origin: "http://localhost:3000"
 }));
 
-app.get("/test", (req, res) => {
-    res.send({data: "test"});
-    console.log("test");
-});
+app.use(testRouter);
 
 app.listen(process.env.PORT, ()=> console.log("server running on port: " + process.env.PORT))

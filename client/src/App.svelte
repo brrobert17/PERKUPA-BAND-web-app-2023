@@ -1,15 +1,14 @@
 <script>
     import {onMount} from "svelte";
-    import {BASE_URL} from "./stores/globalStore.js";
+    import ImageInput from "./assets/components/imageInput/ImageInput.svelte";
+    import {api} from "./config/axios.js";
 
     let test = "";
-    onMount(async ()=> {
-        const response = await fetch($BASE_URL + "/test", {
-            credentials: "include"
-        });
-        const result = await response.json();
-        test = result.data;
+
+    onMount(async () => {
+        const response = await api.get('/test');
+        test = response.data.data;
     })
 </script>
 <h1>HelloWorld {test}</h1>
-<h1>HelloWorld {test}</h1>
+<ImageInput/>
